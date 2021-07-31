@@ -18,10 +18,22 @@ class TestAnswersInLine(admin.TabularInline):
 @admin.register(Test)
 class TestAdmin(admin.ModelAdmin):
 
-    list_display = ['id', 'name', 'subject']
+    list_display = ['id', 'name', 'subject',]
     list_filter = ['created_date', 'update_at', 'name', 'subject']
     search_fields = ['name', 'subject']
     inlines = [TestQuestionsInLine]
     fieldsets = (
         ('Тематика и название теста', {'fields': ('name', 'subject')}),
     )
+
+
+@admin.register(TestQuestions)
+class TestQuestionsAdmin(admin.ModelAdmin):
+
+    list_display = ['id', 'test', 'question']
+    list_filter = ['test', 'question']
+    search_fields = ['test', 'question']
+    inlines = [TestAnswersInLine]
+    # fieldsets = (
+    #     ('Тематика и название теста', {'fields': ('test', 'question')}),
+    # )

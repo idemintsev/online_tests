@@ -18,17 +18,15 @@ class Test(models.Model):
 
 
 class TestQuestions(models.Model):
+    ANSWER_STATUS = [
+        ('right', 'Верный'),
+        ('wrong', 'Неправильный'),
+    ]
     test = models.ForeignKey(Test, on_delete=models.CASCADE, related_name='questions')
     question = models.TextField(default=None, verbose_name='Вопрос')
 
 
 class TestAnswers(models.Model):
-    ANSWER_STATUS = [
-        ('right', 'Верный'),
-        ('wrong', 'Неправильный'),
-    ]
     question = models.ForeignKey(TestQuestions, on_delete=models.CASCADE, related_name='answers')
     answer = models.TextField(default=None, verbose_name='Ответ')
-    status = models.CharField(
-        max_length=5, choices=ANSWER_STATUS, default='wrong', verbose_name='Правильный/неправильный'
-    )
+    status = models.CharField(max_length=5, verbose_name='Правильный/неправильный')
