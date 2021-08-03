@@ -1,0 +1,27 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  {% block title %}
+    <title>Тесты online</title>
+    <link type="text/css" href="{% static 'quiz/css/style.css' %}" rel="stylesheet">
+  {% endblock %}
+</head>
+<body>
+  {% block mainmenu %}
+    {% for el in menu%}
+    <a href="{% url el.url_name %}">{{ el.title }}</a>
+    {% endfor %}
+    {% if not request.user.is_authenticated %}
+      <a href="{% url 'register' %}">Регистрация</a> | <a href="{% url 'login' %}">Войти</a>
+    {% else %}
+      <a href="{% url 'register' %}">Регистрация</a> | <a href="{% url 'logout' %}">Выйти</a>
+    {% endif %}
+  <br>
+  {% endblock %}
+
+    {% block content %}
+    {% endblock %}
+</body>
+</html>
