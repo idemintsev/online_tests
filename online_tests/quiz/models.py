@@ -22,7 +22,7 @@ class Quiz(models.Model):
 
 
 class Question(models.Model):
-    quiz = models.ForeignKey(Quiz, on_delete=models.CASCADE, verbose_name='Название теста')
+    quiz = models.ForeignKey(Quiz, on_delete=models.CASCADE, related_name='question', verbose_name='Название теста')
     text = models.TextField(default='', verbose_name='Вопрос')
 
     class Meta:
@@ -30,10 +30,21 @@ class Question(models.Model):
         verbose_name_plural = 'Вопросы'
 
     def __str__(self):
-        return self.text if len(str(self.text)) < 20 else self.text[:20]
+        return self.text if len(str(self.text)) < 20 else f'{str(self.text[:20])}...'
 
 
-class Profile(models.Model):
-    user = models.OneToOneField(User, on_delete=models.CASCADE)
-    email = models.EmailField(max_length=100, blank=True, verbose_name='Email')
+class Answer(models.Model):
+    STATUS = [
+        ('right', 'Правильный'),
+        ('wrong', 'Неправильный'),
+    ]
+    question = models.ForeignKey(Question, on_delete=models.CASCADE, related_name='answer', verbose_name='Вопрос')
+    text = models.TextField(default='', verbose_name='Ответ')
+    status = models.CharField(max_length=12, choices=STATUS, verbose_name='Правильный/Неправильный')
 
+    class Meta:
+        verbose_name = 'Ответ'
+        verbose_name_plural = 'Ответы'
+
+    def __str__(self):
+        return self.text if len(str(self.text)) < 20 else f'{str(self.text[:20])}...'
