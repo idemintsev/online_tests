@@ -5,9 +5,12 @@ from django.http import HttpResponseNotFound
 from django.contrib.auth import authenticate, login
 from django.contrib.auth.views import LoginView, LogoutView
 from django.urls import reverse_lazy
+from django.core.paginator import Paginator, PageNotAnInteger, EmptyPage
 
-from quiz.models import Quiz
+from quiz.models import Quiz, Question, Answer
 from quiz.forms import UserRegisterForm
+
+from collections import defaultdict
 
 
 menu = [{'title': 'О проекте', 'url_name': 'about'},
@@ -25,10 +28,34 @@ class Index(ListView):
         return context
 
 
-class QuizView(DetailView):
-    model = Quiz
-    template_name = 'quiz/quiz.html'
-    context_object_name = 'content'
+class QuizView(View):
+    def get(self, request, pk):
+        quiz = Quiz.objects.get(id=pk)
+        return render(request, 'quiz/quiz.html', {'quiz': quiz})
+
+
+class QuizPassingView(View):
+    def get(self, request):
+        """
+        quiz_pk - PK конкретного теста.
+        Передается в шаблоне через URL от страницы к странице. По нему достаются вопросы из БД для конкретного теста.
+        """
+        quiz_pk = request.GET.get('quiz_pk')
+        questions_queryset = Question.objects.filter(quiz_id=quiz_pk)
+        context = self.add_pagination(request, questions_queryset)
+        context.update({'quiz_pk': quiz_pk})
+        return render(request, 'quiz/passing.html', context)
+
+    def add_pagination(self, request, questions_queryset) -> dict:
+        paginator = Paginator(questions_queryset, 1)
+        page = request.GET.get('page')
+        try:
+            questions = paginator.page(page)
+        except PageNotAnInteger:
+            questions = paginator.page(1)
+        except EmptyPage:
+            questions = paginator.page(paginator.num_pages)
+        return {'page': page, 'questions': questions}
 
 
 class AboutView(View):

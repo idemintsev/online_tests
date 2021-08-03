@@ -2,12 +2,14 @@ from django.urls import path
 
 from django.conf.urls.static import static
 from online_tests import settings
-from quiz.views import Index, QuizView, UserLoginView, UserLogoutView, AboutView, OfferView, UserRegisterView
+from quiz.views import (
+    Index, QuizView, UserLoginView, UserLogoutView, AboutView, OfferView, UserRegisterView, QuizPassingView)
 
 
 urlpatterns = [
     path('', Index.as_view(), name='index'),
     path('quiz/<int:pk>/', QuizView.as_view(), name='quiz'),
+    path('passing', QuizPassingView.as_view(), name='passing'),
     path('about/', AboutView.as_view(), name='about'),
     path('offer/', OfferView.as_view(), name='offer'),
     path('login/', UserLoginView.as_view(), name='login'),

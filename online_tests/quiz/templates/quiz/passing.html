@@ -1,0 +1,8 @@
+{% extends 'quiz/general.html' %}
+
+{% block content %}
+  {% for question in questions %}
+    <p>{{ question.text }}</p>
+  {% endfor %}
+  {% include 'quiz/pagination.html' with page=questions %}
+{% endblock %}
