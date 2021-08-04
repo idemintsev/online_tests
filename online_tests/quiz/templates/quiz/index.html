@@ -1,0 +1,11 @@
+{% extends 'quiz/general.html' %}
+
+
+{% block content %}
+<br>
+  {% for quiz in quizzes_list %}
+    <li>{{ quiz }}</li>
+    <p><a href="{{ quiz.get_absolute_url }}">Пройти тест</a></p>
+    <hr>
+  {% endfor %}
+{% endblock%}

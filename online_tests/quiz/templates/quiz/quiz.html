@@ -1,0 +1,14 @@
+{% extends 'quiz/general.html' %}
+
+{% block content %}
+  <p>Дата создания: {{ quiz.created_date }}</p>
+  <p>Дата последнего обновления: {{ quiz.update_at }}</p>
+  <p>{{ quiz.name }}</p>
+  {% for question in questions_and_answers %}
+    <p>{{ question }}</p>
+  {% endfor %}
+
+  <p><a href="{% url 'passing' %}?quiz_pk={{ quiz.pk }}">Начать тест</a></p>
+  <p><a href="{% url 'index' %}">На главную</a> </p>
+
+{% endblock %}
