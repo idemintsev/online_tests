@@ -1,7 +1,7 @@
 {% extends "site/general_template.html"%}
 
 {% block content %}
-    {% for test in tests_list %}
-        {{ test }}
-    {% endfor %}
+  {% for test in tests_list %}
+    <p><a href="{% url 'test_details' pk=test.id %}">{{ test }}</a></p>
+  {% endfor %}
 {% endblock %}

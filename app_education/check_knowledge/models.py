@@ -1,5 +1,6 @@
 from django.contrib.auth.models import User
 from django.db import models
+from django.db import connection
 
 
 class Profile(models.Model):
@@ -22,17 +23,41 @@ class Test(models.Model):
         verbose_name = 'Тест'
         verbose_name_plural = 'Тесты'
 
+    def get_answers(self):
+        with connection.cursor() as cursor:
+            cursor.execute("""
+                SELECT answer, status
+                FROM check_knowledge_testanswers
+                WHERE question_id = %s""", [self.id])
+            result = cursor.fetchone()
+        return result
+
 
 class TestQuestions(models.Model):
+    test = models.ForeignKey(Test, on_delete=models.CASCADE, related_name='questions')
+    question = models.TextField(default=None, verbose_name='Вопрос')
+
+    def __str__(self):
+        return self.question
+
+    def get_answers(self):
+        with connection.cursor() as cursor:
+            cursor.execute("""
+                SELECT answer, status
+                FROM check_knowledge_testanswers
+                WHERE question_id = %s""", [self.id])
+            result = cursor.fetchone()
+        return result
+
+
+class TestAnswers(models.Model):
     ANSWER_STATUS = [
         ('right', 'Верный'),
         ('wrong', 'Неправильный'),
     ]
-    test = models.ForeignKey(Test, on_delete=models.CASCADE, related_name='questions')
-    question = models.TextField(default=None, verbose_name='Вопрос')
-
-
-class TestAnswers(models.Model):
     question = models.ForeignKey(TestQuestions, on_delete=models.CASCADE, related_name='answers')
     answer = models.TextField(default=None, verbose_name='Ответ')
-    status = models.CharField(max_length=5, verbose_name='Правильный/неправильный')
+    status = models.CharField(max_length=5, choices=ANSWER_STATUS, verbose_name='Правильный/неправильный')
+
+    def __str__(self):
+        return self.answer

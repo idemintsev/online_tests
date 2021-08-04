@@ -30,7 +30,7 @@ class TestAdmin(admin.ModelAdmin):
 @admin.register(TestQuestions)
 class TestQuestionsAdmin(admin.ModelAdmin):
 
-    list_display = ['id', 'test', 'question']
+    list_display = ['id', 'test', 'question', 'get_answers']
     list_filter = ['test', 'question']
     search_fields = ['test', 'question']
     inlines = [TestAnswersInLine]

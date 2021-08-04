@@ -15,6 +15,13 @@ class MainPage(generic.ListView):
     context_object_name = 'tests_list'
 
 
+class TestDetailView(generic.DetailView):
+
+    model = Test
+    template_name = 'site/test_details.html'
+    context_object_name = 'details'
+
+
 class RegistrationUser(View):
     def get(self, request):
         form = RegisterForm()
