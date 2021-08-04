@@ -1,8 +1,18 @@
 {% extends 'quiz/general.html' %}
 
 {% block content %}
-  {% for question in questions %}
-    <p>{{ question.text }}</p>
-  {% endfor %}
-  {% include 'quiz/pagination.html' with page=questions %}
+  {% if questions %}
+
+    {% for question in questions %}
+      <p>{{ question.text }}</p>
+        {% for answer in answers %}
+          <p>{{ answer }}</p>
+        {% endfor %}
+    {% endfor %}
+    {% include 'quiz/pagination.html' with page=questions %}
+
+  {% else %}
+    <p>Для данного теста пока нет вопросов.</p>
+  {% endif %}
+
 {% endblock %}

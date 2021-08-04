@@ -10,11 +10,8 @@ from django.core.paginator import Paginator, PageNotAnInteger, EmptyPage
 from quiz.models import Quiz, Question, Answer
 from quiz.forms import UserRegisterForm
 
-from collections import defaultdict
-
-
-menu = [{'title': 'О проекте', 'url_name': 'about'},
-        {'title': 'Предложить тест', 'url_name': 'offer'},]
+MENU = [{'title': 'О проекте', 'url_name': 'about'},
+        {'title': 'Предложить тест', 'url_name': 'offer'}, ]
 
 
 class Index(ListView):
@@ -24,7 +21,7 @@ class Index(ListView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['menu'] = menu
+        context['menu'] = MENU
         return context
 
 
@@ -39,14 +36,44 @@ class QuizPassingView(View):
         """
         quiz_pk - PK конкретного теста.
         Передается в шаблоне через URL от страницы к странице. По нему достаются вопросы из БД для конкретного теста.
+        questions_id - кортеж из PK вопросов к тесту.
+        По questions_id фильтруются варианты ответов.
         """
         quiz_pk = request.GET.get('quiz_pk')
-        questions_queryset = Question.objects.filter(quiz_id=quiz_pk)
-        context = self.add_pagination(request, questions_queryset)
-        context.update({'quiz_pk': quiz_pk})
-        return render(request, 'quiz/passing.html', context)
+        questions_queryset = Question.objects.filter(quiz_id=quiz_pk)  # вопросы для текущего теста
+        if self.is_questions_for_quiz(questions_queryset):
+            context = self.add_pagination(request, questions_queryset)  # dict {'page': page, 'questions': questions}
+            questions_id = self.get_questions_id(questions_queryset)
+            answers_text_tuple = self.get_answers_from_db(questions_id)
+            # получаем номер индекса нужного кортежа с ответами в answers_text_tuple.
+            # answers_text_tuple[0] - кортеж с ответами на 1-й вопрос, answers_text_tuple[1] - 2-й вопрос и т.д.
+            answers_index_for_current_question = 0 if context['page'] is None else (int(context['page']) - 1)
+            answers = answers_text_tuple[answers_index_for_current_question]
+            context.update(quiz_pk=quiz_pk, answers=answers)
+            return render(request, 'quiz/passing.html', context)
+        return render(request, 'quiz/passing.html')
+
+    def is_questions_for_quiz(self, questions_queryset):
+        """ Проверяет есть ли вопросы для теста """
+        if len(questions_queryset):
+            return True
+        return False
+
+    def get_questions_id(self, questions) -> tuple:
+        """ Возвращает PK всех вопросов из QuerySet """
+        questions_id = [question.id for question in questions]
+        return tuple(questions_id)
+
+    def get_answers_from_db(self, questions_id: tuple) -> tuple:
+        """ Возвращает кортеж из ответов ко всем вопросам теста tuple(tuple(), tuple(), tuple() ...)"""
+        result_answers_text = list()
+        for question_id in questions_id:
+            answers_queryset = Answer.objects.filter(question=question_id)  # все ответы на конкретный вопрос теста
+            result_answers_text.append(tuple([answer.text for answer in answers_queryset]))  # кортеж из текстов ответов
+        return tuple(result_answers_text)
 
     def add_pagination(self, request, questions_queryset) -> dict:
+        """ Пагинатор для постраничного вывода вопросов """
         paginator = Paginator(questions_queryset, 1)
         page = request.GET.get('page')
         try:
