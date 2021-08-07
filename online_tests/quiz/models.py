@@ -48,3 +48,10 @@ class Answer(models.Model):
 
     def __str__(self):
         return self.text if len(str(self.text)) < 20 else f'{str(self.text[:20])}...'
+
+
+class UserQuizResults(models.Model):
+    user_profile = models.OneToOneField(User, on_delete=models.CASCADE, verbose_name='Пользователь')
+    quiz = models.ForeignKey(Quiz, on_delete=models.CASCADE, verbose_name='Название теста')
+    right_answers_quantity = models.IntegerField(default=0, verbose_name='Количество правильных ответов')
+    wrong_answers_quantity = models.IntegerField(default=0, verbose_name='Количество неправильных ответов')
