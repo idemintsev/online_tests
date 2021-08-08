@@ -28,6 +28,10 @@ DEBUG = True
 
 ALLOWED_HOSTS = ['127.0.0.1']
 
+INTERNAL_IPS = [
+    '127.0.0.1',
+]
+
 # Application definition
 
 INSTALLED_APPS = [
@@ -38,6 +42,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'quiz.apps.QuizConfig',
+    'debug_toolbar',
 ]
 
 MIDDLEWARE = [
@@ -48,14 +53,16 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'debug_toolbar.middleware.DebugToolbarMiddleware',
 ]
+
 
 ROOT_URLCONF = 'online_tests.urls'
 
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': [os.path.join(BASE_DIR, 'templates')],  # Переопределенный шаблон админки
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -84,6 +91,8 @@ DATABASES = {
 
 # Password validation
 # https://docs.djangoproject.com/en/3.2/ref/settings/#auth-password-validators
+
+LOGIN_URL = '/login/'
 
 AUTH_PASSWORD_VALIDATORS = [
     {

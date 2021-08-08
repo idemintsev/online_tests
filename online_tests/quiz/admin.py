@@ -51,7 +51,6 @@ class QuizAdmin(admin.ModelAdmin):
 class QuestionAdmin(admin.ModelAdmin):
     list_display = ['id', 'text', ]
     list_filter = ['quiz', ]
-    search_fields = ['text', ]
     inlines = [AnswerInLine]
     list_display_links = ['text', ]
 

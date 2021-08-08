@@ -21,6 +21,7 @@ class AnswerInLineFormset(BaseInlineFormSet):
             if error:
                 return
 
+        # Проверяем, чтобы не все вопросы были правильными/неправильными
         answers_statuses = [answer.get('status') for answer in self.cleaned_data if answer]
         if 'right' not in answers_statuses or 'wrong' not in answers_statuses:
             raise ValidationError('Все ответы не могут быть правильными или неправильными')

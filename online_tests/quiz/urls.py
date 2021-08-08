@@ -1,9 +1,11 @@
-from django.urls import path
+from django.urls import path, include
+import debug_toolbar
 
 from django.conf.urls.static import static
 from online_tests import settings
 from quiz.views import (
-    Index, QuizView, UserLoginView, UserLogoutView, AboutView, OfferView, UserRegisterView, QuizPassingView)
+    Index, QuizView, UserLoginView, UserLogoutView, AboutView, OfferView, UserRegisterView, QuizPassingView,
+    QuizResultsView, )
 
 
 urlpatterns = [
@@ -15,6 +17,8 @@ urlpatterns = [
     path('login/', UserLoginView.as_view(), name='login'),
     path('logout', UserLogoutView.as_view(), name='logout'),
     path('register/', UserRegisterView.as_view(), name='register'),
+    path('results/', QuizResultsView.as_view(), name='results'),
+    path('__debug__/', include(debug_toolbar.urls)),
 ]
 
 

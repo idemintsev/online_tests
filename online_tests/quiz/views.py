@@ -6,6 +6,7 @@ from django.shortcuts import render, redirect
 from django.urls import reverse_lazy
 from django.views import View
 from django.views.generic import ListView
+from django.contrib.auth.mixins import LoginRequiredMixin
 
 from quiz.forms import UserRegisterForm
 from quiz.models import Quiz, Question, Answer
@@ -31,7 +32,8 @@ class QuizView(View):
         return render(request, 'quiz/quiz.html', {'quiz': quiz})
 
 
-class QuizPassingView(View):
+class QuizPassingView(LoginRequiredMixin, View):
+    redirect_field_name = 'index'
 
     def get(self, request):
         """
@@ -56,7 +58,8 @@ class QuizPassingView(View):
 
     def post(self, request):
         data = request.POST.getlist('input')
-        page, quiz_pk = int(data[0][0]), int(data[0][2])
+        page = 1 if 'None' in data[0] else int(data[0][0])
+        quiz_pk = int(data[0][5]) if 'None' in data[0] else int(data[0][2])
         questions_queryset = Question.objects.filter(quiz_id=quiz_pk)  # вопросы для текущего теста
         context = self.add_pagination(request, questions_queryset, page)
         context.update(quiz_pk=quiz_pk, message='Ваш ответ приинят')
@@ -95,6 +98,12 @@ class QuizPassingView(View):
         except EmptyPage:
             questions = paginator.page(paginator.num_pages)
         return {'page': page, 'questions': questions}
+
+
+class QuizResultsView(View):
+    def get(self, request):
+        quiz_pk = request.GET.get('quiz_pk')
+        return render(request, 'quiz/results.html', {'quiz_pk': quiz_pk})
 
 
 class AboutView(View):
