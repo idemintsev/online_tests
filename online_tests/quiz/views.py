@@ -1,4 +1,5 @@
 from django.contrib.auth import authenticate, login
+from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth.views import LoginView, LogoutView
 from django.core.paginator import Paginator, PageNotAnInteger, EmptyPage
 from django.http import HttpResponseNotFound
@@ -6,10 +7,9 @@ from django.shortcuts import render, redirect
 from django.urls import reverse_lazy
 from django.views import View
 from django.views.generic import ListView
-from django.contrib.auth.mixins import LoginRequiredMixin
 
 from quiz.forms import UserRegisterForm
-from quiz.models import Quiz, Question, Answer
+from quiz.models import Quiz, Question, Answer, UserQuizResults
 
 MENU = [{'title': 'О проекте', 'url_name': 'about'},
         {'title': 'Предложить тест', 'url_name': 'offer'}, ]
@@ -58,8 +58,15 @@ class QuizPassingView(LoginRequiredMixin, View):
 
     def post(self, request):
         data = request.POST.getlist('input')
-        page = 1 if 'None' in data[0] else int(data[0][0])
-        quiz_pk = int(data[0][5]) if 'None' in data[0] else int(data[0][2])
+        page, quiz_pk, question_pk = self.get_page_quiz_id_question_id(data)
+        right_answers = self.get_right_answers(question_pk)
+        user_answers = self.get_user_answers_from_templates(data)
+        self.answer_handler(
+            right_answers=right_answers,
+            user_answers=user_answers,
+            user=request.user,
+            quiz=Quiz.objects.get(id=quiz_pk),
+        )
         questions_queryset = Question.objects.filter(quiz_id=quiz_pk)  # вопросы для текущего теста
         context = self.add_pagination(request, questions_queryset, page)
         context.update(quiz_pk=quiz_pk, message='Ваш ответ приинят')
@@ -70,6 +77,56 @@ class QuizPassingView(LoginRequiredMixin, View):
         if len(questions_queryset):
             return True
         return False
+
+    def get_right_answers(self, question_id) -> list:
+        """ Возвращает список правильных ответов для конкретного вопроса в тесте. """
+        right_answers_queryset = Answer.objects.filter(question=question_id, status='right')
+        right_answers_list = [answer.id for answer in right_answers_queryset]
+        return right_answers_list
+
+    def get_user_answers_from_templates(self, data_from_templates):
+        all_data = [data.split(',') for data in data_from_templates]
+        user_answers = [int(answer[-1]) for answer in all_data]
+        return user_answers
+
+    def is_right_answer(self, right_answers: list, user_answers: list) -> bool:
+        """ Проверяет были от вет пользователя верным. """
+        if len(right_answers) == len(user_answers):
+            for ind, value in enumerate(right_answers):
+                if user_answers[ind] != value:
+                    return False
+            return True
+        return False
+
+    def save_result_to_db(self, user, quiz, result):
+        """ Сохраняет результаты теста в БД """
+        user_quiz_results, _ = UserQuizResults.objects.get_or_create(
+            user_profile=user,
+            quiz=quiz
+        )
+        if result:
+            right_answers = user_quiz_results.right_answers_quantity
+            right_answers += 1
+            user_quiz_results.right_answers_quantity = right_answers
+        else:
+            wrong_answers = user_quiz_results.wrong_answers_quantity
+            wrong_answers += 1
+            user_quiz_results.wrong_answers_quantity = wrong_answers
+        user_quiz_results.save()
+
+    def answer_handler(self, right_answers, user_answers, user, quiz):
+        result = self.is_right_answer(right_answers, user_answers)
+        self.save_result_to_db(user=user, quiz=quiz, result=result)
+
+    def get_page_quiz_id_question_id(self, data_from_templates):
+        """
+        Возвращает номер страницы, с которой пришел post-запрос, PK текущего теста и текущего вопроса.
+        Оба параметра передаются из шаблона passing.html.
+        """
+        data = [el.split(',') for el in data_from_templates]
+        page, quiz_pk, question_pk, *_ = data[0]
+        page = 1 if page is None else page
+        return page, quiz_pk, question_pk
 
     def get_questions_id(self, questions) -> tuple:
         """ Возвращает PK всех вопросов из QuerySet """
@@ -103,7 +160,28 @@ class QuizPassingView(LoginRequiredMixin, View):
 class QuizResultsView(View):
     def get(self, request):
         quiz_pk = request.GET.get('quiz_pk')
-        return render(request, 'quiz/results.html', {'quiz_pk': quiz_pk})
+        user = request.user
+        right_answers, wrong_answers, percent = self.get_results(user=user, quiz_pk=quiz_pk)
+        context = {
+            'right_answers': right_answers,
+            'wrong_answers': wrong_answers,
+            'percent': percent,
+        }
+        return render(request, 'quiz/results.html', {'context': context})
+
+    def get_results(self, user, quiz_pk):
+        """
+        Возвращает количество верных/неверных ответов + процент верных ответов по итогам прохождения конкретного теста.
+        Обнуляет результаты теста в БД.
+        """
+        quiz_results = UserQuizResults.objects.get(user_profile=user, quiz=Quiz.objects.get(id=quiz_pk))
+        right = quiz_results.right_answers_quantity
+        wrong = quiz_results.wrong_answers_quantity
+        total_questions = right + wrong
+        result_in_percent = int(right * 100 / total_questions)
+        quiz_results.right_answers_quantity, quiz_results.wrong_answers_quantity = 0, 0
+        quiz_results.save()
+        return right, wrong, result_in_percent
 
 
 class AboutView(View):

@@ -51,7 +51,7 @@ class Answer(models.Model):
 
 
 class UserQuizResults(models.Model):
-    user_profile = models.OneToOneField(User, on_delete=models.CASCADE, verbose_name='Пользователь')
+    user_profile = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name='Пользователь')
     quiz = models.ForeignKey(Quiz, on_delete=models.CASCADE, verbose_name='Название теста')
-    right_answers_quantity = models.IntegerField(default=0, verbose_name='Количество правильных ответов')
-    wrong_answers_quantity = models.IntegerField(default=0, verbose_name='Количество неправильных ответов')
+    right_answers_quantity = models.IntegerField(default=0, blank=True, verbose_name='Количество правильных ответов')
+    wrong_answers_quantity = models.IntegerField(default=0, blank=True, verbose_name='Количество неправильных ответов')

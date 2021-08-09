@@ -1,6 +1,9 @@
 {% extends 'quiz/general.html' %}
 
 {% block content%}
-<p>{{ quiz_pk }}</p>
+<p>Результаты теста</p>
+<p>Количество правильных ответов - {{ context.right_answers }}</p>
+<p>Количество неправильных ответов - {{ context.wrong_answers }}</p>
+<p>Процент правильных ответов - {{ context.percent }}%</p>
 <p><a href="{% url 'index' %}">На главную</a></p>
 {% endblock %}
