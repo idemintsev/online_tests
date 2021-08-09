@@ -27,11 +27,18 @@ class UserQuizResultsInLine(admin.StackedInline):
 
 
 class QuizAdmin(admin.ModelAdmin):
-    list_display = ['id', 'name', 'subject', 'update_at', 'view_questions_link']
+    list_display = ['id', 'name', 'subject', 'update_at', 'view_questions_link', ]
     list_filter = ['created_date', 'update_at', 'name', 'subject']
     list_display_links = ['name', ]
     search_fields = ['name', 'subject']
-    inlines = [QuestionInLine]
+    # inlines = [QuestionInLine]
+    fields = ['name', 'subject']
+
+    def get_question(self, obj):
+        return obj.question.text
+
+    def get_answer(self, obj):
+        return obj.question.answer
 
     def view_questions_link(self, obj):
         """
