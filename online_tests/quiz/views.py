@@ -11,11 +11,12 @@ from django.views.generic import ListView
 from quiz.forms import UserRegisterForm
 from quiz.models import Quiz, Question, Answer, UserQuizResults
 
-MENU = [{'title': 'О проекте', 'url_name': 'about'},
+MENU = [{'title': 'Главная', 'url_name': 'index'},
+        {'title': 'О проекте', 'url_name': 'about'},
         {'title': 'Предложить тест', 'url_name': 'offer'}, ]
 
 
-class Index(ListView):
+class IndexView(ListView):
     model = Quiz
     template_name = 'quiz/index.html'
     context_object_name = 'quizzes_list'
@@ -29,7 +30,7 @@ class Index(ListView):
 class QuizView(View):
     def get(self, request, pk):
         quiz = Quiz.objects.get(id=pk)
-        return render(request, 'quiz/quiz.html', {'quiz': quiz})
+        return render(request, 'quiz/quiz.html', {'quiz': quiz, 'menu': MENU})
 
 
 class QuizPassingView(LoginRequiredMixin, View):
@@ -53,6 +54,7 @@ class QuizPassingView(LoginRequiredMixin, View):
             answers_index_for_current_question = 0 if context['page'] is None else (int(context['page']) - 1)
             answers = answers[answers_index_for_current_question]
             context.update(quiz_pk=quiz_pk, answers=answers)
+            context['menu'] = MENU
             return render(request, 'quiz/passing.html', context)
         return render(request, 'quiz/passing.html')
 
@@ -167,7 +169,7 @@ class QuizResultsView(View):
             'wrong_answers': wrong_answers,
             'percent': percent,
         }
-        return render(request, 'quiz/results.html', {'context': context})
+        return render(request, 'quiz/results.html', {'context': context, 'menu': MENU})
 
     def get_results(self, user, quiz_pk):
         """
@@ -186,17 +188,22 @@ class QuizResultsView(View):
 
 class AboutView(View):
     def get(self, request):
-        return render(request, 'quiz/about.html')
+        return render(request, 'quiz/about.html', {'menu': MENU})
 
 
 class OfferView(View):
     def get(self, request):
-        return render(request, 'quiz/offer.html')
+        return render(request, 'quiz/offer.html', {'menu': MENU})
 
 
 class UserLoginView(LoginView):
     template_name = 'quiz/login.html'
     next_page = reverse_lazy('index')
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data()
+        context['menu'] = MENU
+        return context
 
 
 class UserLogoutView(LogoutView):
