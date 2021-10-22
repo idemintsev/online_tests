@@ -214,7 +214,7 @@ class UserLogoutView(LogoutView):
 class UserRegisterView(View):
     def get(self, request):
         form = UserRegisterForm
-        return render(request, 'quiz/registr.html', {'form': form})
+        return render(request, 'quiz/registr.html', {'form': form, 'menu': MENU})
 
     def post(self, request):
         form = UserRegisterForm(request.POST)
