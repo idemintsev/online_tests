@@ -1,11 +1,26 @@
 {% extends 'quiz/general.html' %}
 
 {% block content %}
-<form method="post">
-    {% csrf_token %}
-    {{ form.as_p }}
-    <button type="submit">Войти</button>
-</form>
-<p>Если у вас нет аккаунта, вы можете <a href="{% url 'register' %}">зарегистрироваться</a>.</p>
-<a href="{% url 'index' %}">Вернуться на главную страницу</a>
+<div class="container">
+    <form method="post">
+        {% csrf_token %}
+        <div class="col-md-8 col-md-offset-2">
+            <div class="panel panel-default">
+                <div class="panel-body">
+                    <div class="form-group clearfix">
+                        <div class="col-md-6">
+                            {{ form.as_p }}
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-6 col-md-offset-4">
+                    <input type="submit" value="Войти" class="btn btn-success">
+                </div>
+
+            </div>
+        </div>
+    </form>
+    <br><p>Если у вас нет аккаунта, вы можете <a href="{% url 'register' %}">зарегистрироваться</a>.</p>
+</div>
 {% endblock %}

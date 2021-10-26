@@ -1,0 +1,31 @@
+version: '3.8'
+
+services:
+  app_db:
+    image: postgres:12
+#    volumes:
+#      - postgres_data:/var/lib/postgresql/data/
+    environment:
+      POSTGRES_PASSWORD: 123456
+      POSTGRES_USER: postgres
+      POSTGRES_DB: postgres
+    ports:
+      - 5432:5432
+
+  django_app:
+    container_name: quiz
+    build:
+      context: ./
+      dockerfile: Dockerfile
+    command: bash -c "python /app/online_tests/manage.py makemigrations quiz &&
+             python /app/online_tests/manage.py migrate quiz &&
+             python /app/online_tests/manage.py runserver 0.0.0.0:8000"
+#    volumes:
+#      - .:/app
+    ports:
+      - 8000:8000
+    depends_on:
+      - app_db
+
+#volumes:
+#  postgres_data:

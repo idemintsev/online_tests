@@ -1,3 +1,5 @@
+from random import shuffle
+
 from django.contrib.auth import authenticate, login
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth.views import LoginView, LogoutView
@@ -11,9 +13,11 @@ from django.views.generic import ListView
 from quiz.forms import UserRegisterForm
 from quiz.models import Quiz, Question, Answer, UserQuizResults
 
-MENU = [{'title': 'Главная', 'url_name': 'index'},
-        {'title': 'О проекте', 'url_name': 'about'},
-        {'title': 'Предложить тест', 'url_name': 'offer'}, ]
+MENU = [
+    {'title': 'Главная', 'url_name': 'index'},
+    {'title': 'О проекте', 'url_name': 'about'},
+    {'title': 'Предложить тест', 'url_name': 'offer'},
+]
 
 
 class IndexView(ListView):
@@ -53,10 +57,9 @@ class QuizPassingView(LoginRequiredMixin, View):
             # answers[0] - кортеж с объектами Answer на 1-й вопрос, answers[1] - 2-й вопрос и т.д.
             answers_index_for_current_question = 0 if context['page'] is None else (int(context['page']) - 1)
             answers = answers[answers_index_for_current_question]
-            context.update(quiz_pk=quiz_pk, answers=answers)
-            context['menu'] = MENU
+            context.update(quiz_pk=quiz_pk, answers=answers, menu=MENU)
             return render(request, 'quiz/passing.html', context)
-        return render(request, 'quiz/passing.html')
+        return render(request, 'quiz/passing.html', {'menu': MENU})
 
     def post(self, request):
         data = request.POST.getlist('input')
@@ -71,7 +74,7 @@ class QuizPassingView(LoginRequiredMixin, View):
         )
         questions_queryset = Question.objects.filter(quiz_id=quiz_pk)  # вопросы для текущего теста
         context = self.add_pagination(request, questions_queryset, page)
-        context.update(quiz_pk=quiz_pk, message='Ваш ответ приинят')
+        context.update(quiz_pk=quiz_pk, message='Ваш ответ принят', menu=MENU)
         return render(request, 'quiz/passing.html', context)
 
     def is_questions_for_quiz(self, questions_queryset):
@@ -136,16 +139,21 @@ class QuizPassingView(LoginRequiredMixin, View):
         return tuple(questions_id)
 
     def get_answers_from_db(self, questions_id: tuple) -> tuple:
-        """ Возвращает кортеж из ответов ко всем вопросам теста tuple(tuple(), tuple(), tuple() ...)"""
+        """
+        Возвращает кортеж из ответов ко всем вопросам теста tuple(tuple(), tuple(), tuple() ...)
+        Ответы "перемешиваются" в случайном порядке.
+        """
         answers = list()
         for question_id in questions_id:
             answers_queryset = Answer.objects.filter(question=question_id)  # все ответы на конкретный вопрос теста
-            answers.append(tuple([answer for answer in answers_queryset]))
+            answers_list = [answer for answer in answers_queryset]
+            shuffle(answers_list)
+            answers.append(tuple(answers_list))
         return tuple(answers)
 
     def add_pagination(self, request, questions_queryset, page_number=None) -> dict:
         """ Пагинатор для постраничного вывода вопросов """
-        paginator = Paginator(questions_queryset, 1)
+        paginator = Paginator(list(questions_queryset), 1)
         if request.method == 'GET':
             page = request.GET.get('page')
         else:
@@ -180,9 +188,12 @@ class QuizResultsView(View):
         right = quiz_results.right_answers_quantity
         wrong = quiz_results.wrong_answers_quantity
         total_questions = right + wrong
-        result_in_percent = int(right * 100 / total_questions)
-        quiz_results.right_answers_quantity, quiz_results.wrong_answers_quantity = 0, 0
-        quiz_results.save()
+        if total_questions > 0:
+            result_in_percent = int(right * 100 / total_questions)
+            quiz_results.right_answers_quantity, quiz_results.wrong_answers_quantity = 0, 0
+            quiz_results.save()
+        else:
+            result_in_percent = 0
         return right, wrong, result_in_percent
 
 

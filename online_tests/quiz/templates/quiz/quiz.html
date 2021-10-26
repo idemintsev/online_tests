@@ -1,6 +1,10 @@
 {% extends 'quiz/general.html' %}
 
 {% block content %}
+<div class="container">
+  {% if not request.user.is_authenticated %}
+    <h2>Для прохождения тестов войдите под своей учетной записью</h2><br>
+  {% endif %}
   <p>Дата создания: {{ quiz.created_date }}</p>
   <p>Дата последнего обновления: {{ quiz.update_at }}</p>
   <p>{{ quiz.name }}</p>
@@ -8,7 +12,7 @@
     <p>{{ question }}</p>
   {% endfor %}
 
-  <p><a href="{% url 'passing' %}?quiz_pk={{ quiz.pk }}">Начать тест</a></p>
-  <p><a href="{% url 'index' %}">На главную</a> </p>
-
+  <p><a href="{% url 'passing' %}?quiz_pk={{ quiz.pk }}">Начать тест</a>  |
+    <a href="{% url 'index' %}">Вернуться к выбору тестов</a></p>
+</div>
 {% endblock %}
