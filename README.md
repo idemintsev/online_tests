@@ -23,13 +23,16 @@
 2. После клонирования проекта создайте файл config.py (инструкции по настройке config.py
    находятся в файле config_example.py).
 
-#### Start project for development
-1. Для утсановки зависимостей выполните команду pip install -r requirements.txt
-2. Выполните команды "python manage.py makemigrations" и "python manage.py migrate"
-3. Чтобы создать в базе данных тестовую викторину выполните команду "python manage.py manage_quiz create".
+#### Start project
+1. Для запуска проекта используйте команды:
+   - docker-compose build
+   - docker-compose up
+2. Чтобы создать superuser выполните команду:
+   - docker exec -ti quiz /app/online_tests/manage.py createsuperuser
+   Далее следуйте инструкциям в консоли.
+3. Чтобы создать в базе данных тестовую викторину выполните команду:
+   - docker exec -ti quiz /app/online_tests/manage.py manage_quiz create
    Каждый новый запуск этой команды создает одну новую викторину.
-4. Для удаления тестового набора викторин выполните команду "python manage.py manage_quiz delete".
+4. Для удаления тестового набора викторин выполните команду:
+   - docker exec -ti quiz /app/online_tests/manage.py manage_quiz  delete
    Команда удаляет все созданные тестовые викторины.
-5. Суперпользователь создается стандартной командой "python manage.py createsuperuser".
-
-#### Start project for production
