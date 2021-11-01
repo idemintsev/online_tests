@@ -17,9 +17,9 @@ services:
     build:
       context: ./
       dockerfile: Dockerfile
-    command: bash -c "python /app/online_tests/manage.py makemigrations quiz &&
+    command: bash -c "python /app/online_tests/manage.py migrate &&
+             python /app/online_tests/manage.py makemigrations quiz &&
              python /app/online_tests/manage.py migrate quiz &&
-             python /app/online_tests/manage.py migrate &&
              python /app/online_tests/manage.py runserver 0.0.0.0:8000"
 #    volumes:
 #      - .:/app
